@@ -1,16 +1,21 @@
-import { getNextStaticProps, is404 } from '@faustjs/next';
-import { Footer, Header, Hero } from 'components';
-import { GetStaticPropsContext } from 'next';
-import Head from 'next/head';
-import { client, Page as PageType } from 'client';
+import { getNextStaticProps, is404 } from "@faustjs/next";
+import { Footer, Header, Hero } from "components";
+import { GetStaticPropsContext } from "next";
+import Head from "next/head";
+import { client, Page as PageType } from "client";
 
 export interface PageProps {
-  page: PageType | PageType['preview']['node'] | null | undefined;
+  page: PageType | PageType["preview"]["node"] | null | undefined;
 }
 
 export function PageComponent({ page }: PageProps) {
   const { useQuery } = client;
   const generalSettings = useQuery().generalSettings;
+
+  // Use the "seo" object from the WP GraphQL SEOPress extension
+  // Use other fields as needed.
+  // @link https://github.com/moonmeister/wp-graphql-seopress#usage
+  const { metaTitle, metaDesc } = page?.seo ?? {};
 
   return (
     <>
@@ -21,8 +26,10 @@ export function PageComponent({ page }: PageProps) {
 
       <Head>
         <title>
-          {page?.title()} - {generalSettings.title}
+          {metaTitle ?? `${page?.title()} - ${generalSettings.title}`}
         </title>
+
+        {metaDesc && <meta name="description" content={metaDesc} />}
       </Head>
 
       <Hero
@@ -32,7 +39,7 @@ export function PageComponent({ page }: PageProps) {
 
       <main className="content content-single">
         <div className="wrap">
-          <div dangerouslySetInnerHTML={{ __html: page?.content() ?? '' }} />
+          <div dangerouslySetInnerHTML={{ __html: page?.content() ?? "" }} />
         </div>
       </main>
 
@@ -59,6 +66,6 @@ export async function getStaticProps(context: GetStaticPropsContext) {
 export function getStaticPaths() {
   return {
     paths: [],
-    fallback: 'blocking',
+    fallback: "blocking",
   };
 }
